@@ -1,0 +1,24 @@
+# Logs y artefactos de la práctica manual anterior
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+.env
+
+# Editores / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Docker
+*.tar
+*.tar.gz

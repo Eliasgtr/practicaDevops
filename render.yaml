@@ -1,0 +1,22 @@
+# render.yaml — Infraestructura como código para Render.com
+# Documentación: https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: hola-mundo-devops
+    runtime: docker
+    repo: https://github.com/${{ github.repository || "eliasruiz09/practicaDevops" }}
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    region: oregon
+    branch: main
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 5000
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: IMAGE_TAG
+        sync: false  # Render usa la imagen que el Dockerfile genera

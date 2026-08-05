@@ -1,0 +1,15 @@
+# Archivos que NO deben incluirse en la imagen Docker
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+.git/
+.gitignore
+.idea/
+.vscode/
+*.md
+.DS_Store
