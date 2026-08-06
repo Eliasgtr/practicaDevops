@@ -117,37 +117,67 @@ Hay **3 workflows** en `.github/workflows/`:
 
 ### 🔑 Secrets necesarios en GitHub
 
-Ve a **Settings → Secrets and variables → Actions** y crea:
+Solo 2 secrets. Ve a **Settings → Secrets and variables → Actions** y creá:
 
 | Secret | Valor | Cómo obtenerlo |
 |--------|-------|----------------|
-| `DOCKERHUB_TOKEN` | Access Token de Docker Hub | [hub.docker.com/settings/security](https://hub.docker.com/settings/security) → New Access Token |
-| `RENDER_API_KEY` | API Key de Render | [dashboard.render.com/account/api-keys](https://dashboard.render.com/u/settings/api-keys) |
-| `RENDER_SERVICE_ID` | ID del servicio web | Aparece en la URL del servicio en Render (ej: `srv-abc123`) |
+| `DOCKERHUB_TOKEN` | Access Token de Docker Hub | [hub.docker.com/settings/security](https://hub.docker.com/settings/security) → New Access Token (permiso Read/Write/Delete) |
+| `RENDER_DEPLOY_HOOK_URL` | URL secreta del Deploy Hook | Render Dashboard → tu servicio web → **Settings** → **Deploy Hook** → copiá la URL (empieza con `https://api.render.com/deploy/srv-…?key=…`) |
+
+**Tip de seguridad:** esa URL es una credencial — cualquiera que la tenga puede redeploy. El secreto está hasheado en los logs y solo se imprime si lo necesitás para debug.
 
 ### 🚀 Setup paso a paso
 
 ```bash
-# 1. Inicializar git (si aún no es repo)
-git init
-git add .
-git commit -m "feat: add CI/CD pipeline"
+# 1. (Ya hecho) Repo creado y pusheado
+#    https://github.com/Eliasgtr/practicaDevops
 
-# 2. Crear repo en GitHub y subir
-git remote add origin https://github.com/eliasruiz09/practicaDevops.git
-git push -u origin main
+# 2. Crear cuenta en Render (gratis, sin tarjeta)
+#    https://dashboard.render.com/register
 
-# 3. Configurar los 3 secrets en GitHub UI
+# 3. Crear el servicio web:
+#    - New + → Web Service
+#    - Conectar repo Eliasgtr/practicaDevops
+#    - Render detecta render.yaml automáticamente
+#    - Apply → esperar primer deploy
 
-# 4. Crear el servicio en Render:
-#    - New → Web Service
-#    - Conectar el repo de GitHub
-#    - Render detectará el render.yaml (Blueprint)
-#    - Anotar el SERVICE_ID de la URL
+# 4. Obtener el Deploy Hook URL:
+#    - Una vez creado el servicio, abrirlo
+#    - Settings → Deploy Hook
+#    - Copiar la URL (NO la compartas)
 
-# 5. (Opcional) Crear un tag para probar release
-git tag v1.1.0
-git push origin v1.1.0
+# 5. Crear el Access Token de Docker Hub:
+#    - https://hub.docker.com/settings/security
+#    - New Access Token (Read/Write/Delete)
+#    - Copiar el token
+
+# 6. Configurar los 2 secrets en GitHub:
+#    https://github.com/Eliasgtr/practicaDevops/settings/secrets/actions
+#    - New repository secret → DOCKERHUB_TOKEN → pegar token
+#    - New repository secret → RENDER_DEPLOY_HOOK_URL → pegar URL
+
+# 7. Probar (¡dispará el primer deploy!):
+git commit --allow-empty -m "ci: trigger first pipeline run"
+git push origin main
+```
+
+### 🔄 Flujo del pipeline (lo que pasa cuando hacés push a `main`)
+
+```
+push a main
+    │
+    ▼
+Job 1: build  ─────────────────────────► docker-push
+    │                                          │
+    │                                          ▼
+    │                              eliasruiz09/hola-mundo-devops:latest
+    │                              eliasruiz09/hola-mundo-devops:1.0.0 (si tag)
+    ▼
+Job 2: deploy ─────────────────────────► POST Deploy Hook URL
+                                               │
+                                               ▼
+                                      Render hace rebuild
+                                      (reusa la imagen cacheada)
 ```
 
 ### 📊 Triggers y tags generados
